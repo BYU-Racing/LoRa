@@ -32,31 +32,48 @@ void setup() {
   LoRa.setSpreadingFactor(9);          // ranges from 6-12,default 7 see API docs
 
   Serial.println("LoRa init succeeded.");
+
 }
 
 void loop() {
   if (millis() - lastSendTime > interval) {
-    String message = "HeLoRa World! ";   // send a message
-    message += msgCount;
-    sendMessage(message);
-    Serial.println("Sending " + message);
+    // String message = "HeLoRa World! ";   // send a message
+    // message += msgCount;
+    // sendMessage(message);
+    // Serial.println("Sending " + message);
+    sendExampleCAN();
     lastSendTime = millis();            // timestamp the message
     interval = random(2000) + 1000;    // 2-3 seconds
     msgCount++;
   }
-
   // parse for a packet, and call onReceive with the result:
   // onReceive(LoRa.parsePacket());
 }
 
-void sendMessage(String outgoing) {
-  
+// void sendMessage(String outgoing) {
+//   LoRa.write(destination);              // add destination address
+//   LoRa.write(localAddress);             // add sender address
+//   LoRa.write(msgCount);                 // add message ID
+//   LoRa.write(outgoing.length());        // add payload length
+//   LoRa.print(outgoing);                 // add payload
+//   LoRa.endPacket();                     // finish packet and send it
+  // msgCount++;                           // increment message ID
+// }
+
+int genNumber() {
+  int num = rand()*255;
+  return num;
+}
+
+void sendExampleCAN() {
+     // Simulated CAN message buffer (for demonstration)
+  uint8_t exampleBuffer[11] = { msgCount, 0xE0, 0x08};
+
+  for (int i = 3; i < 11; i++) {
+    exampleBuffer[i] = genNumber();
+  }
+
   LoRa.beginPacket();                   // start packet
-  LoRa.write(destination);              // add destination address
-  LoRa.write(localAddress);             // add sender address
-  LoRa.write(msgCount);                 // add message ID
-  LoRa.write(outgoing.length());        // add payload length
-  LoRa.print(outgoing);                 // add payload
-  LoRa.endPacket();                     // finish packet and send it
-  msgCount++;                           // increment message ID
+  LoRa.write(exampleBuffer, sizeof(exampleBuffer));
+  LoRa.endPacket();
 }

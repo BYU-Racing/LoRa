@@ -1,76 +1,108 @@
-// // #include <SPI.h>
-// // #include <LoRa.h>
-
-// // void setup() {
-// //   Serial.begin(9600);
-// //   while (!Serial);
-
-// //   Serial.println("LoRa Receiver");
-
-// //   if (!LoRa.begin(915E6)) {
-// //     Serial.println("Starting LoRa failed!");
-// //     while (1);
-// //   }
-// //   Serial.println("LoRa Initiation Successful!");
-// // }
-
-// // void loop() {
-// //   // try to parse packet
-// //   int packetSize = LoRa.parsePacket();
-// //   if (packetSize) {
-// //     // received a packet
-// //     Serial.print("Received packet '");
-
-// //     // read packet
-// //     while (LoRa.available()) {
-// //       Serial.print((char)LoRa.read());
-// //     }
-
-// //     // print RSSI of packet
-// //     Serial.print("' with RSSI ");
-// //     Serial.println(LoRa.packetRssi());
-// //   }
-// // }
-
-// // ***-----------------------------------------------
-
 // #include <SPI.h>
 // #include <LoRa.h>
-
-// int counter = 0;
-// // const int csPin = 7;          // LoRa radio chip select
-// // const int resetPin = 6;       // LoRa radio reset
-// // const int irqPin = 1;         // change for your board; must be a hardware interrupt pin
-
-// String outgoing;              // outgoing message
-
-// byte msgCount = 0;            // count of outgoing messages
-// byte localAddress = 0xFF;     // address of this device
-// byte destination = 0xBB;      // destination to send to
-// long lastSendTime = 0;        // last send time
-// int interval = 2000;          // interval between sends
 
 // void setup() {
 //   Serial.begin(9600);
 //   while (!Serial);
 
-//   Serial.println("Initializing LoRa Reciever");
-
-// // override the default CS, reset, and IRQ pins (optional)
-//   // LoRa.setPins(csPin, resetPin, irqPin);// set CS, reset, IRQ pin
+//   Serial.println("LoRa Receiver");
 
 //   if (!LoRa.begin(915E6)) {
 //     Serial.println("Starting LoRa failed!");
 //     while (1);
 //   }
-
-//   Serial.println("Setting spreading factor");
-//   LoRa.setSpreadingFactor(9);          // ranges from 6-12,default 7 see API docs
-
-//   Serial.println("LoRa init succeeded.");
+//   Serial.println("LoRa Initiation Successful!");
 // }
 
 // void loop() {
+//   // try to parse packet
+//   int packetSize = LoRa.parsePacket();
+//   if (packetSize) {
+//     // received a packet
+//     Serial.print("Received packet '");
+
+//     // read packet
+//     while (LoRa.available()) {
+//       Serial.print((char)LoRa.read());
+//     }
+
+//     // print RSSI of packet
+//     Serial.print("' with RSSI ");
+//     Serial.println(LoRa.packetRssi());
+//   }
+// }
+
+// ***-----------------------------------------------
+
+#include <SPI.h>
+#include <LoRa.h>
+
+int counter = 0;
+// const int csPin = 7;          // LoRa radio chip select
+// const int resetPin = 6;       // LoRa radio reset
+// const int irqPin = 1;         // change for your board; must be a hardware interrupt pin
+
+String outgoing;              // outgoing message
+
+byte msgCount = 0;            // count of outgoing messages
+byte localAddress = 0xFF;     // address of this device
+byte destination = 0xBB;      // destination to send to
+long lastSendTime = 0;        // last send time
+int interval = 2000;          // interval between sends
+
+void setup() {
+  Serial.begin(9600);
+  while (!Serial);
+
+  Serial.println("Initializing LoRa Reciever");
+
+// override the default CS, reset, and IRQ pins (optional)
+  // LoRa.setPins(csPin, resetPin, irqPin);// set CS, reset, IRQ pin
+
+  if (!LoRa.begin(915E6)) {
+    Serial.println("Starting LoRa failed!");
+    while (1);
+  }
+
+  Serial.println("Setting spreading factor");
+  LoRa.setSpreadingFactor(9);          // ranges from 6-12,default 7 see API docs
+
+  Serial.println("LoRa init succeeded.");
+}
+
+void loop() {
+
+  readCANMessage();
+
+}
+
+
+void readCANMessage() {
+  uint8_t packetSize = LoRa.parsePacket();
+
+  if (packetSize == 0) return;          // if there's no packet, return
+
+  uint8_t msgReceived = LoRa.read();
+  uint8_t receivedMessage[11];              // Array to store the received message
+  uint8_t i = 0;                            // Index for the array
+
+  // Read each byte into the array
+  while (LoRa.available() && i < 11) {
+    receivedMessage[i] = LoRa.read();
+    i++;
+  }
+
+  // Now `receivedMessage` contains the 11-byte CAN message
+  Serial.print("Received CAN Message: ");
+  for (int j = 0; j < i; j++) {
+    Serial.print(receivedMessage[j], HEX);
+    Serial.print(" ");
+  }
+  Serial.println();
+}
+
+
+// **** ------ EXAMPLE below----- ***** 
 //   // if (millis() - lastSendTime > interval) {
 //   //   String message = "HeLoRa World! ";   // send a message
 //   //   message += msgCount;
@@ -120,5 +152,5 @@
 //   Serial.println("RSSI: " + String(LoRa.packetRssi()));
 //   Serial.println("Snr: " + String(LoRa.packetSnr()));
 //   Serial.println();
-// }
+// } 
 
